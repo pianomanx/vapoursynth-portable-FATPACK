@@ -81,8 +81,8 @@ clip = c.std.Trim(clip, start_frame, end_frame)
 def hash_frame(frame):
     md5 = hashlib.md5()
     for plane in range(frame.format.num_planes):
-        for line in frame.get_read_array(plane):
-            md5.update(line)
+        plane_view = frame[plane]
+        md5.update(plane_view if plane_view.c_contiguous else plane_view.tobytes())
     return md5.hexdigest()
 
 
