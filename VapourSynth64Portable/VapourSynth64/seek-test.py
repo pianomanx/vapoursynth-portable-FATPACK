@@ -2,7 +2,7 @@
 # mod by thechaoscoder
 # added argparse stuff
 #
-# original code by dubhater https://gist.github.com/dubhater/3a2c8a59841cae49ecae25cd47ff78d2 
+# original code by dubhater https://gist.github.com/dubhater/3a2c8a59841cae49ecae25cd47ff78d2
 #
 
 # Usage:
@@ -21,7 +21,7 @@ choices_filter = ['ffms2', 'lsmas', 'd2v', 'dgi', 'avi', 'ffms2seek0']
 
 parser = argparse.ArgumentParser(description='Reliability tester of VapourSynth Source Filters - seek test')
 parser.add_argument('file', help='Video file to perform a seek test on')
-parser.add_argument('start_frame', nargs='?', type=int, default='0', help='Start frame') 
+parser.add_argument('start_frame', nargs='?', type=int, default='0', help='Start frame')
 parser.add_argument('end_frame', nargs='?', type=int, help='End frame')
 parser.add_argument('-f', choices=choices_filter, dest='source_filter', help='Set source filter')
 args = parser.parse_args()
@@ -29,9 +29,9 @@ args = parser.parse_args()
 c = vs.core
 
 extension = os.path.splitext(args.file)[1]
-if(extension == ".d2v"):
+if extension == ".d2v":
     args.source_filter = choices_filter[2] #d2v
-if(extension == ".dgi"):
+if extension == ".dgi":
     args.source_filter = choices_filter[3] #dgi
 
 if args.source_filter is None:
@@ -42,25 +42,25 @@ if args.source_filter is None:
     print("      5 for AVISource")
     print("      6 for FFMS2000(seekmode=0) [slow but more safe]")
     user_choice = int(input("Number: "))
-    if(1 <= user_choice <= len(choices_filter)):
+    if 1 <= user_choice <= len(choices_filter):
         args.source_filter = choices_filter[user_choice-1]
     else:
         sys.exit("wrong input")
-	
-if(args.source_filter == "ffms2"):
-	clip = c.ffms2.Source(args.file)
-if(args.source_filter == "ffms2seek0"):
-	clip = c.ffms2.Source(args.file, seekmode=0)
-if(args.source_filter == "lsmas"):
-	clip = c.lsmas.LWLibavSource(args.file)
-if(args.source_filter == "lsmasav"):
-	clip = c.lsmas.LibavSMASHSource(args.file)
-if(args.source_filter == "d2v"):
-	clip = c.d2v.Source(args.file, rff=False)
-if(args.source_filter == "dgi"):
-	clip = c.dgdecodenv.DGSource(args.file)
-if(args.source_filter == "avi"):
-	clip = c.avisource.AVISource(args.file)
+
+if args.source_filter == "ffms2":
+    clip = c.ffms2.Source(args.file)
+if args.source_filter == "ffms2seek0":
+    clip = c.ffms2.Source(args.file, seekmode=0)
+if args.source_filter == "lsmas":
+    clip = c.lsmas.LWLibavSource(args.file)
+if args.source_filter == "lsmasav":
+    clip = c.lsmas.LibavSMASHSource(args.file)
+if args.source_filter == "d2v":
+    clip = c.d2v.Source(args.file, rff=False)
+if args.source_filter == "dgi":
+    clip = c.dgdecodenv.DGSource(args.file)
+if args.source_filter == "avi":
+    clip = c.avisource.AVISource(args.file)
 
 print(args.source_filter)
 
@@ -73,16 +73,16 @@ if not args.end_frame is None and args.end_frame > 0:
 
 print("Clip has {} frames.".format(clip.num_frames))
 if clip.num_frames < end_frame:
-	end_frame = clip.num_frames - 1
-	#print("[INFO] End Frame parameter exceeds clip length, correcting end_frame to clip length.")
-	
+    end_frame = clip.num_frames - 1
+    #print("[INFO] End Frame parameter exceeds clip length, correcting end_frame to clip length.")
+
 clip = c.std.Trim(clip, start_frame, end_frame)
 
 def hash_frame(frame):
     md5 = hashlib.md5()
     for plane in range(frame.format.num_planes):
-        for line in frame.get_read_array(plane):
-            md5.update(line)
+        plane_view = frame[plane]
+        md5.update(plane_view if plane_view.c_contiguous else plane_view.tobytes())
     return md5.hexdigest()
 
 
@@ -102,7 +102,7 @@ hasError = False
 for i in test:
     try:
         result = hash_frame(clip.get_frame(i))
-        if (result != reference[i]):
+        if result != reference[i]:
             hasError = True
             print("Requested frame {}, ".format(i), end='')
             try:
@@ -111,7 +111,7 @@ for i in test:
                 print("got new frame with hash {}.".format(result))
             print("    Previous requests:", end='')
             start = test.index(i) - 10
-            if (start < 0):
+            if start < 0:
                 start = 0
             for j in range(start, test.index(i) + 1):
                 print(" {}".format(test[j]), end='')
