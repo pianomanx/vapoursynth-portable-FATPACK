@@ -4,7 +4,7 @@ import winreg
 import platform
 
 def print_version(core):
-	vs_version = core.version()
+	vs_version = str(core)
 	print('#######################################')
 	print(vs_version)
 	
